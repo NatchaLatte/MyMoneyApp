@@ -47,47 +47,47 @@ const tagsToInject = `
     <meta name="format-detection" content="telephone=no">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, shrink-to-fit=no">
     <style id="pwa-base">
-      /* Match the warm cream theme so any unfilled pixel during boot,
-         pull-to-refresh, or rubber-band scroll never flashes white. */
-      html, body { background-color: #F3EAD8; }
-
-      /* iOS PWA standalone has two stubborn quirks:
-         1. height:100% / 100vh resolves to the LAYOUT viewport, which is
-            shorter than the visual viewport when the home-indicator and
-            translucent status bar are involved, so the body bg leaks
-            through at the bottom.
-         2. The body is allowed to rubber-band-scroll on iOS, leaving an
-            empty strip when the user drags the page.
-         Locking the body with position:fixed + 100dvh forces the React
-         root to span the FULL visible window edge-to-edge and prevents
-         body scroll. Inner ScrollViews keep their own scrolling. */
-      html { height: 100%; }
+      /* ── Full-bleed PWA viewport fix ──────────────────────────────
+         iOS PWA standalone + viewport-fit=cover creates a visual viewport
+         taller than 100vh. The body stops short and background leaks at
+         the bottom. Fix: pin body to the real viewport via position:fixed
+         + inset:0, then force #root and EVERY Expo Router wrapper div
+         (up to 6 levels deep) to flex-stretch so the chain is unbroken
+         all the way from body → actual screen component.                */
+      html {
+        margin: 0; padding: 0;
+        height: 100%; height: 100dvh;
+        background-color: #F3EAD8;
+      }
       body {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        height: 100%;
-        height: 100dvh;
+        margin: 0; padding: 0;
+        background-color: #F3EAD8;
         overflow: hidden;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%; height: 100dvh;
       }
       #root {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        height: 100%;
-        height: 100dvh;
         display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+      }
+      #root > div,
+      #root > div > div,
+      #root > div > div > div,
+      #root > div > div > div > div,
+      #root > div > div > div > div > div,
+      #root > div > div > div > div > div > div {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important;
+        min-height: 0 !important;
       }
 
-      /* iOS Safari auto-zooms into any focused input whose font-size is
-         smaller than 16px and never zooms back out. Force every form
-         control to 16px so the page stays at its natural scale. */
+      /* iOS Safari auto-zooms focused inputs with font-size < 16px. */
       input, textarea, select { font-size: 16px !important; }
     </style>
 `.trim();
