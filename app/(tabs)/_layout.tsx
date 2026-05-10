@@ -150,8 +150,8 @@ function TabBar({ state, descriptors, navigation }: {
         <GlassFill />
         <View style={styles.cardBorder} pointerEvents="none" />
 
-        <View style={styles.row}>
-          {/* Left side tabs */}
+        <View nativeID="mymoney-tab-bar-row" style={styles.row}>
+          {/* Left side tabs — nativeID: PWA inject CSS keeps this row horizontal */}
           {leftTabs.map(renderTab)}
 
           {/* Center FAB — inside the card, same vertical level */}

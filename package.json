@@ -9,6 +9,7 @@
     "web": "expo start --web",
     "supabase:verify": "node scripts/verify-supabase.mjs",
     "build:web": "expo export -p web && node scripts/inject-pwa-meta.mjs",
+    "build:web:debug-edge": "expo export -p web && PWA_DEBUG_CHROME=1 node scripts/inject-pwa-meta.mjs",
     "preview:web": "npx serve dist -s -l 3000"
   },
   "dependencies": {

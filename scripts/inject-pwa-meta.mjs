@@ -31,6 +31,10 @@ for (const file of requiredAssets) {
 }
 
 const TAG_MARKER = '<!-- pwa-injected -->';
+
+/** Shell behind RN Web views — must be opaque or iOS standalone shows white/grey gutters. */
+const CHROME_BG = process.env.PWA_DEBUG_CHROME === '1' ? '#FF1493' : '#F3EAD8';
+
 // black-translucent lets the page background extend behind the iOS status
 // bar; combined with the cream body background and safe-area-insets in the
 // React layer we get an edge-to-edge look in PWA standalone mode.
@@ -59,17 +63,21 @@ const tagsToInject = `
          take precedence over these defaults.                        */
       html {
         margin: 0; padding: 0;
-        height: 100%; height: 100dvh;
-        background-color: #F3EAD8;
+        height: 100%;
+        min-height: 100dvh;
+        min-height: -webkit-fill-available;
+        background-color: ${CHROME_BG};
       }
       body {
         margin: 0; padding: 0;
-        background-color: #F3EAD8;
         overflow: hidden;
         position: fixed;
         inset: 0;
         width: 100%;
-        height: 100%; height: 100dvh;
+        height: 100%;
+        min-height: 100dvh;
+        min-height: -webkit-fill-available;
+        background-color: ${CHROME_BG};
       }
       #root {
         display: flex;
@@ -77,6 +85,13 @@ const tagsToInject = `
         flex: 1;
         min-height: 0;
         height: 100%;
+        background-color: ${CHROME_BG};
+      }
+      /* First Expo/Router wrapper only — opaque so iOS standalone does not show
+         white/grey through RN Web's default transparent View. Do not paint
+         deeper divs here or high-specificity rules override glass tab card. */
+      #root > div {
+        background-color: ${CHROME_BG};
       }
       #root > div,
       #root > div > div,
@@ -88,6 +103,13 @@ const tagsToInject = `
         flex-direction: column;
         flex: 1;
         min-height: 0;
+      }
+
+      /* Tab bar inner row must stay horizontal — PWA base rules above can
+         otherwise win over RN Web flex in some WebKit builds. */
+      #mymoney-tab-bar-row {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
       }
 
       /* iOS Safari auto-zooms focused inputs with font-size < 16px. */
@@ -112,3 +134,6 @@ if (!html.includes('</head>')) {
 html = html.replace('</head>', `    ${tagsToInject}\n  </head>`);
 writeFileSync(indexPath, html, 'utf8');
 console.log('[pwa] injected manifest + Apple touch-icon meta tags into dist/index.html');
+if (process.env.PWA_DEBUG_CHROME === '1') {
+  console.log('[pwa] PWA_DEBUG_CHROME=1 → html/body/#root shell is magenta (edge debug). Rebuild without env for production.');
+}
